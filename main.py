@@ -1,9 +1,9 @@
-from flask import Flask, request
+from flask import Flask, request, session
 from flask_session import Session
-from flask_socketio import SocketIO, join_room, leave_room, send
+from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from config.init_config import init_config
 from flask_caching import Cache
-from anonfiles.models.generate_pass import generate_pass
+from anonfiles.models.room_specs import create_room
 
 app = Flask(__name__)
 
@@ -12,26 +12,36 @@ app.config.from_object(get_config)
 
 io = SocketIO(app)
 
-sess = Session()
+Session(app)
 cache = Cache(app)
 
-sess.init_app(app)
 
-
-@app.route("/")
-def create_room():
-    room_pass = generate_pass()
-    # cache room_name:password
-    return room_pass
-
-
-@io.on('join', namespace='/room')
-def join_room(data):
-    print(data)
-    #user = session['username']
-    room = data['room']
+@io.on('connect', namespace='/user')
+def create_room(socket):
+    print(socket)
+    room, password = create_room(cache)
     join_room(room)
-    #send(user, to=room)
+    emit('created', {'room': room, 'password': password}, to=room, json=True)
+
+
+@io.on('join', namespace='/user')
+def join_room(data):
+    password = cache.get(data["name"])
+    if password is None or data["password"] is None:
+        emit("incorrect")
+
+    elif data["password"] == password:
+        join_room(data["name"])
+        emit("joined")
+    else:
+        emit("incorrect")
+
+
+@io.on('leave', namespace='/user')
+def leave_room(data):
+    room = data['name']
+    leave_room(room)
+    emit("left")
 
 
 if __name__ == "__main__":
