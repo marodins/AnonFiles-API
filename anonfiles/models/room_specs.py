@@ -1,15 +1,16 @@
 import random
+import time
 from string import digits, ascii_letters
 from hashlib import md5
 from random import getrandbits
 
 
 def generate_pass():
-    return md5(str(getrandbits(10))).hexdigest()
+    return md5(str(getrandbits(10)).encode()).hexdigest()
 
 
 def generate_name():
-    return ''.join(random.choices(digits+ascii_letters, k=7))
+    return ''.join(random.choices(digits+ascii_letters, k=15))
 
 
 def create_room(cache):
