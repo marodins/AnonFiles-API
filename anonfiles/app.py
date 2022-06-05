@@ -16,6 +16,7 @@ def make_app(env_type=os.getenv('FLASK_ENV', None)):
     app.config.from_object(get_config)
     # register blueprints
     reg_blueprints(app)
+    reg_error_handlers(app)
     sess.init_app(app)
     cache.init_app(app)
     socketio.init_app(app, cors_allowed_origins="*")
@@ -24,9 +25,14 @@ def make_app(env_type=os.getenv('FLASK_ENV', None)):
 
 
 def reg_blueprints(app):
-    from anonfiles.rooms.routes import bp
-    app.register_blueprint(bp)
+    #from anonfiles.rooms.routes import bp
+    #app.register_blueprint(bp)
+    pass
 
+
+def reg_error_handlers(app):
+    from anonfiles.errors.handle_all import handle_errors, Halt
+    app.register_error_handler(Halt, handle_errors)
 
 
 
