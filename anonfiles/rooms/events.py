@@ -30,7 +30,7 @@ def connection(client):
 
 
 @io.on('make_room', namespace='/user')
-def make_room(data):
+def make_room():
     room, password = create_room(cache)
     print("rooms", rooms())
     print('room_name_cached', room)
@@ -41,6 +41,7 @@ def make_room(data):
 
 @io.on('get_rooms', namespace='/user')
 def get_all_rooms():
+    print('here are current rooms', rooms())
     emit('all_rooms', rooms())
 
 
