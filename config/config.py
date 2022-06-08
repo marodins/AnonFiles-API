@@ -1,8 +1,5 @@
 from os import environ
-from dotenv import load_dotenv
 import redis
-
-load_dotenv()
 
 
 class Config(object):

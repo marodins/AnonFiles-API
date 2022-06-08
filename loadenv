@@ -1,0 +1,6 @@
+set -o allexport
+source .env
+set +o allexport
+source env/bin/activate
+redis-server
+python3 main.py

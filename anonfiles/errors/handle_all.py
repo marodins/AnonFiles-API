@@ -1,4 +1,4 @@
-from flask import Response, jsonify
+from anonfiles import socketio as io
 
 
 class Halt(Exception):
@@ -8,12 +8,10 @@ class Halt(Exception):
         self.msg = {"error": msg}
 
 
+@io.on_error_default
 def handle_errors(err: Halt, content='application/json'):
-    res = Response()
-    res.data = jsonify(err.msg)
-    res.status_code = err.msg
-    res.content_type = content
-    return res
+    io.emit('error', err.msg)
+
 
 
 
