@@ -1,7 +1,7 @@
 from flask import session, request
 from flask_socketio import join_room, leave_room, rooms, emit
 from anonfiles import socketio as io
-from anonfiles.models.room_specs import create_room
+from anonfiles.models.room_specs import create_room, add_user
 from anonfiles import cache
 from anonfiles.errors.handle_all import Halt
 
@@ -13,14 +13,16 @@ def try_room(message):
     room_pass = message.get('pass', None)
     is_room = cache.get(room_name)
 
-    password = None if room_name is None or is_room is None else is_room
+    password = None if room_name is None or is_room is None else is_room[
+        "pass"]
 
     if password and room_pass == password:
         join_room(room_name)
-        emit("joined")
+        add_user(cache, room_name, str(request.sid))
+        emit("joined", {"user": request.sid}, room=room_name)
     else:
         print('emitting message')
-        emit("message", {"error": "incorrect password"})
+        raise Halt(1011, "incorrect password")
 
 
 @io.on('connect', namespace='/user')
@@ -36,6 +38,7 @@ def make_room():
     print('room_name_cached', room)
     print(password)
     join_room(room)
+    add_user(cache, room, str(request.sid))
     emit('created', {'room': room, 'password': password})
 
 

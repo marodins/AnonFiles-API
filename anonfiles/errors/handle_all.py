@@ -1,4 +1,5 @@
 from anonfiles import socketio as io
+from flask_socketio import emit
 
 
 class Halt(Exception):
@@ -9,8 +10,8 @@ class Halt(Exception):
 
 
 @io.on_error_default
-def handle_errors(err: Halt, content='application/json'):
-    io.emit('error', err.msg)
+def handle_errors(err: Halt):
+    emit('error', err.msg)
 
 
 
