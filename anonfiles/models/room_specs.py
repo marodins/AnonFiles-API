@@ -23,20 +23,23 @@ def create_room(cache):
     room = {
         "pass": room_pass,
         "messages": [],
-        "users": []
+        "users": [],
+        "admin": ''
     }
     cache.set(room_name, room)
 
     return room_name, room_pass
 
 
-def add_user(cache, room: str, user: str):
-    cur = cache.get(room, None)
+def add_user(cache, room: str, user: str, admin=False):
+    cur = cache.get(room)
 
     if not cur:
         raise Halt(1003, 'room does not exist')
     else:
         users = cur["users"]
         users.append(user)
+        if admin:
+            cur["admin"] = user
         cache.set(room, cur)
 

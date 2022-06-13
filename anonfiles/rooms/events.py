@@ -9,17 +9,23 @@ from anonfiles.errors.handle_all import Halt
 @io.on('try_room', namespace='/user')
 def try_room(message):
     print('in try_room')
-    room_name = message.get('name', None)
-    room_pass = message.get('pass', None)
+    room_name = message.get('name')
+    room_pass = message.get('pass')
     is_room = cache.get(room_name)
 
-    password = None if room_name is None or is_room is None else is_room[
+    password = None if (room_name is None) or (is_room is None) else is_room[
         "pass"]
-
+    print(room_name, password, is_room)
+    if str(request.sid) in is_room["users"]:
+        raise Halt(1011, "user is already in this room")
     if password and room_pass == password:
+
         join_room(room_name)
         add_user(cache, room_name, str(request.sid))
-        emit("joined", {"user": request.sid}, room=room_name)
+        print(f'\nusers {request.sid}'
+              f'\nrooms:{rooms()}')
+        emit("joined", {"user": request.sid, "room": room_name},
+             to=room_name, include_self=True)
     else:
         print('emitting message')
         raise Halt(1011, "incorrect password")
@@ -36,9 +42,9 @@ def make_room():
     room, password = create_room(cache)
     print("rooms", rooms())
     print('room_name_cached', room)
-    print(password)
+    print('password', password)
     join_room(room)
-    add_user(cache, room, str(request.sid))
+    add_user(cache, room, str(request.sid), admin=True)
     emit('created', {'room': room, 'password': password})
 
 
@@ -46,6 +52,16 @@ def make_room():
 def get_all_rooms():
     print('here are current rooms', rooms())
     emit('all_rooms', rooms())
+
+
+@io.on('get_users', namespace='/user')
+def get_all_users(data):
+    room_name = data["room"]
+    room = cache.get(room_name)
+    if room:
+        emit('all_users', {"users": room["users"]}, to=room_name)
+    else:
+        raise Halt(1003, "error processing data")
 
 
 @io.on('leave', namespace='/user')

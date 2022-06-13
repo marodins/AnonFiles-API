@@ -4,6 +4,7 @@ from flask import Flask, request
 from anonfiles import cache, sess, socketio
 from dotenv import load_dotenv
 from anonfiles.rooms import events
+from anonfiles.messages import events
 
 
 def make_app(env_type=os.getenv('FLASK_ENV', None)):

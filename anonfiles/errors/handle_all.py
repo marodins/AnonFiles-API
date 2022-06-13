@@ -10,7 +10,7 @@ class Halt(Exception):
 
 
 @io.on_error_default
-def handle_errors(err: Halt):
+def handle_errors(err):
     emit('error', err.msg)
 
 
