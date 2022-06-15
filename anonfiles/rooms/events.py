@@ -1,5 +1,5 @@
 from flask import session, request
-from flask_socketio import join_room, leave_room, rooms, emit
+from flask_socketio import join_room, leave_room, rooms, emit, disconnect
 from anonfiles import socketio as io
 from anonfiles.models.room_specs import create_room, add_user
 from anonfiles import cache
@@ -35,6 +35,12 @@ def try_room(message):
 def connection(client):
     print('client', client)
     print(request.sid)
+
+
+@io.on('disconnect', namespace='/user')
+def disconnection():
+    print('client disconnected')
+
 
 
 @io.on('make_room', namespace='/user')
