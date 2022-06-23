@@ -17,6 +17,17 @@ class Config(object):
     CACHE_REDIS_PORT = environ.get('CACHE_REDIS_PORT')
     CACHE_REDIS_URL = environ.get('CACHE_REDIS_URL')
 
+    # auth
+    AUTH0_CLIENT_ID = environ.get('AUTH0_CLIENT_ID')
+    AUTH0_CLIENT_SECRET = environ.get('AUTH0_CLIENT_SECRET')
+    AUTH0_DOMAIN = environ.get('AUTH0_DOMAIN')
+    AUTH0_AUDIENCE = environ.get('AUTH0_AUDIENCE')
+    AUTH0_CONNECTION = environ.get('CONNECTION')
+    AUTH0_SERVER_METADATA_URL = environ.get('AUTH0_SERVER_METADATA_URL')
+    AUTH0_NAME = "auth0"
+    AUTH0_ACCESS_TOKEN_URL = f'https://{AUTH0_DOMAIN}/oauth/token'
+    AUTH0_API_BASE_URL = f'https://{AUTH0_DOMAIN}'
+
 
 class Production(Config):
     DEBUG = False
