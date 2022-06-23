@@ -12,7 +12,7 @@ from anonfiles.messages import events
 def make_app(env_type=os.getenv('FLASK_ENV', None)):
     app = Flask(__name__,
                 static_folder='../../AnonFiles-FE/anon-files/public/')
-    CORS(app, origins=["http://localhost:3000"])
+    #CORS(app, origins=["http://localhost:8080"])
     file_path = os.path.abspath(os.path.dirname(__file__))
     path = os.path.join(file_path, '../.env')
     load_dotenv(path)
@@ -25,7 +25,6 @@ def make_app(env_type=os.getenv('FLASK_ENV', None)):
     sess.init_app(app)
     cache.init_app(app)
     auth.init_app(app)
-    auth.register('oauth')
 
     socketio.init_app(app, cors_allowed_origins="*")
 

@@ -4,7 +4,7 @@ import redis
 
 class Config(object):
     FLASK_APP = environ.get('FLASK_APP')
-    SECRET_KEY = environ.get('SECRET_KEY')
+    SECRET_KEY = environ.get('FLASK_SECRET')
 
     # session
     SESSION_TYPE = 'redis'
