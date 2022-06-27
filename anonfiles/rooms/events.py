@@ -1,9 +1,11 @@
-from flask import session, request
+from flask import request, g
 from flask_socketio import join_room, leave_room, rooms, emit, disconnect
 from anonfiles import socketio as io
-from anonfiles.models.room_specs import create_room, add_user
+from anonfiles.models.room_specs import create_room, add_user, \
+    add_user_room, get_rooms, is_logged
 from anonfiles import cache
 from anonfiles.errors.handle_all import Halt
+from anonfiles.utils.validations import validator
 
 
 @io.on('try_room', namespace='/user')
@@ -12,19 +14,20 @@ def try_room(message):
     room_name = message.get('name')
     room_pass = message.get('pass')
     is_room = cache.get(room_name)
-
+    user = cache.get(str(request.sid), str(request.sid))
+    logged_in = is_logged(user, str(request.sid))
     password = None if (room_name is None) or (is_room is None) else is_room[
         "pass"]
     print(room_name, password, is_room)
-    if str(request.sid) in is_room["users"]:
+    if user in is_room["users"]:
         raise Halt(1011, "user is already in this room")
     if password and room_pass == password:
 
         join_room(room_name)
-        add_user(cache, room_name, str(request.sid))
+        add_user_room(cache, room_name, user, logged_in=logged_in)
         print(f'\nusers {request.sid}'
               f'\nrooms:{rooms()}')
-        emit("joined", {"user": request.sid, "room": room_name},
+        emit("joined", {"user": user, "room": room_name},
              to=room_name, include_self=True)
     else:
         print('emitting message')
@@ -32,9 +35,12 @@ def try_room(message):
 
 
 @io.on('connect', namespace='/user')
+@validator
 def connection(client):
     print('client', client)
     print(request.sid)
+    if g.payload:
+        add_user(cache, request.sid, g.payload.get('sub'))
 
 
 @io.on('disconnect', namespace='/user')
@@ -42,22 +48,23 @@ def disconnection():
     print('client disconnected')
 
 
-
 @io.on('make_room', namespace='/user')
 def make_room():
+    user = cache.get(str(request.sid), str(request.sid))
+    logged_in = is_logged(user, str(request.sid))
     room, password = create_room(cache)
     print("rooms", rooms())
     print('room_name_cached', room)
     print('password', password)
     join_room(room)
-    add_user(cache, room, str(request.sid), admin=True)
+    add_user_room(cache, room, user, admin=True, logged_in=logged_in)
     emit('created', {'room': room, 'password': password})
 
 
 @io.on('get_rooms', namespace='/user')
 def get_all_rooms():
     print('here are current rooms', rooms())
-    emit('all_rooms', rooms())
+    emit('all_rooms', get_rooms(cache, str(request.sid)))
 
 
 @io.on('get_users', namespace='/user')

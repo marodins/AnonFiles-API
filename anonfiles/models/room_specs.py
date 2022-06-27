@@ -31,15 +31,40 @@ def create_room(cache):
     return room_name, room_pass
 
 
-def add_user(cache, room: str, user: str, admin=False):
+def add_user(cache, temp_id, main_id):
+    if not cache.get(temp_id):
+        cache.set(temp_id, main_id)
+        cache.set(main_id, list())
+
+
+def get_rooms(cache, rid):
+    user = cache.get(rid, rid)
+    # same id as request id not a registered user
+    if user == rid:
+        return None
+    else:
+        return cache.get(user)
+
+
+def is_logged(uid, rid):
+    return uid != rid
+
+
+def add_user_room(cache, room: str, user: str, admin=False, logged_in=False):
     cur = cache.get(room)
 
     if not cur:
         raise Halt(1003, 'room does not exist')
-    else:
-        users = cur["users"]
-        users.append(user)
-        if admin:
-            cur["admin"] = user
-        cache.set(room, cur)
+
+    if logged_in:
+        cur_rooms = cache.get(user)
+        cur_rooms.append(room)
+        cache.set(user, cur_rooms)
+
+    if admin:
+        cur["admin"] = user
+
+    users = cur["users"]
+    users.append(user)
+    cache.set(room, cur)
 
