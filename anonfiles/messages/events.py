@@ -38,13 +38,14 @@ def send_message(data):
 def get_messages(data):
     room = data["room"]
     cur = cache.get(room)
+    user = cache.get(str(request.sid))
     print('getting messages in messages endpoint')
     if not cur:
         raise Halt(1003, "room does not exist")
     else:
         users = cur["users"]
-
-        if str(request.sid) in users:
+        print(users)
+        if str(request.sid) or user in users:
             return emit('all_messages', cur["messages"], to=request.sid)
 
     raise Halt(1003, "unknown error in handler")

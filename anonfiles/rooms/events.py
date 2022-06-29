@@ -14,7 +14,8 @@ def try_room(message):
     room_name = message.get('name')
     room_pass = message.get('pass')
     is_room = cache.get(room_name)
-    user = cache.get(str(request.sid), str(request.sid))
+    user_cached = cache.get(str(request.sid))
+    user = str(request.sid) if user_cached is None else user_cached
     logged_in = is_logged(user, str(request.sid))
     password = None if (room_name is None) or (is_room is None) else is_room[
         "pass"]
@@ -40,7 +41,10 @@ def connection(client):
     print('client', client)
     print(request.sid)
     if g.payload:
-        add_user(cache, request.sid, g.payload.get('sub'))
+        user_id = g.payload.get('sub')
+        print('in payload')
+        add_user(cache, request.sid, user_id)
+        emit('connected_data', {"user_id": user_id})
 
 
 @io.on('disconnect', namespace='/user')
@@ -50,12 +54,11 @@ def disconnection():
 
 @io.on('make_room', namespace='/user')
 def make_room():
-    user = cache.get(str(request.sid), str(request.sid))
+    user_cached = cache.get(str(request.sid))
+    user = str(request.sid) if user_cached is None else user_cached
     logged_in = is_logged(user, str(request.sid))
     room, password = create_room(cache)
-    print("rooms", rooms())
-    print('room_name_cached', room)
-    print('password', password)
+
     join_room(room)
     add_user_room(cache, room, user, admin=True, logged_in=logged_in)
     emit('created', {'room': room, 'password': password})
@@ -63,8 +66,7 @@ def make_room():
 
 @io.on('get_rooms', namespace='/user')
 def get_all_rooms():
-    print('here are current rooms', rooms())
-    emit('all_rooms', get_rooms(cache, str(request.sid)))
+    emit('all_rooms', get_rooms(cache, str(request.sid), default_rooms=rooms()))
 
 
 @io.on('get_users', namespace='/user')
@@ -72,6 +74,7 @@ def get_all_users(data):
     room_name = data["room"]
     room = cache.get(room_name)
     if room:
+        print('users', room["users"])
         emit('all_users', {"users": room["users"]}, to=room_name)
     else:
         raise Halt(1003, "error processing data")

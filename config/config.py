@@ -16,6 +16,7 @@ class Config(object):
     CACHE_REDIS_HOST = environ.get('CACHE_REDIS_HOST')
     CACHE_REDIS_PORT = environ.get('CACHE_REDIS_PORT')
     CACHE_REDIS_URL = environ.get('CACHE_REDIS_URL')
+    CACHE_DEFAULT_TIMEOUT=50000
 
     # auth
     AUTH0_CLIENT_ID = environ.get('AUTH0_CLIENT_ID')

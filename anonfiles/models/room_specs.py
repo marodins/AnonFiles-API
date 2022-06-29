@@ -32,16 +32,20 @@ def create_room(cache):
 
 
 def add_user(cache, temp_id, main_id):
-    if not cache.get(temp_id):
-        cache.set(temp_id, main_id)
+    # associate current session with auth id
+    cache.set(temp_id, main_id)
+    # create completely new user id associated with empty list instance
+    if not cache.get(main_id):
         cache.set(main_id, list())
 
 
-def get_rooms(cache, rid):
-    user = cache.get(rid, rid)
+def get_rooms(cache, rid, default_rooms=None):
+    user_cached = cache.get(str(rid))
+    user = str(rid) if user_cached is None else user_cached
     # same id as request id not a registered user
-    if user == rid:
-        return None
+    print(rid, user, type(rid), type(user))
+    if not is_logged(user, rid):
+        return default_rooms
     else:
         return cache.get(user)
 
@@ -52,7 +56,6 @@ def is_logged(uid, rid):
 
 def add_user_room(cache, room: str, user: str, admin=False, logged_in=False):
     cur = cache.get(room)
-
     if not cur:
         raise Halt(1003, 'room does not exist')
 
