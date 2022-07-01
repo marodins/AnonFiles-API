@@ -2,7 +2,7 @@ from flask import request, g
 from flask_socketio import join_room, leave_room, rooms, emit, disconnect
 from anonfiles import socketio as io
 from anonfiles.models.room_specs import create_room, add_user, \
-    add_user_room, get_rooms, is_logged
+    add_user_room, get_rooms, is_logged, get_user, get_user_name
 from anonfiles import cache
 from anonfiles.errors.handle_all import Halt
 from anonfiles.utils.validations import validator
@@ -13,9 +13,8 @@ def try_room(message):
     print('in try_room')
     room_name = message.get('name')
     room_pass = message.get('pass')
-    is_room = cache.get(room_name)
-    user_cached = cache.get(str(request.sid))
-    user = str(request.sid) if user_cached is None else user_cached
+    is_room = cache.get(str(room_name))
+    user = get_user(cache, request.sid)
     logged_in = is_logged(user, str(request.sid))
     password = None if (room_name is None) or (is_room is None) else is_room[
         "pass"]
@@ -40,11 +39,12 @@ def try_room(message):
 def connection(client):
     print('client', client)
     print(request.sid)
-    if g.payload:
+    if hasattr(g, 'payload'):
         user_id = g.payload.get('sub')
+        user_name = g.payload.get('name')
         print('in payload')
-        add_user(cache, request.sid, user_id)
-        emit('connected_data', {"user_id": user_id})
+        add_user(cache, request.sid, user_id, user_name)
+        emit('connected_data', {"user_id": user_id, "user_name": user_name})
 
 
 @io.on('disconnect', namespace='/user')
@@ -54,13 +54,13 @@ def disconnection():
 
 @io.on('make_room', namespace='/user')
 def make_room():
-    user_cached = cache.get(str(request.sid))
-    user = str(request.sid) if user_cached is None else user_cached
+    user = get_user(cache, request.sid)
     logged_in = is_logged(user, str(request.sid))
     room, password = create_room(cache)
 
     join_room(room)
-    add_user_room(cache, room, user, admin=True, logged_in=logged_in)
+    add_user_room(cache, room, user, admin=True,
+                  logged_in=logged_in)
     emit('created', {'room': room, 'password': password})
 
 

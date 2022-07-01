@@ -28,11 +28,11 @@ def validator(func):
     @wraps(func)
     def validate(*args, **kwargs):
         print(args)
-        token = args[0].get('token')
-        if not token:
-            g.payload = None
-            return
         try:
+            token = args[0].get('token')
+            if not token:
+                g.payload = None
+                return
             res = requests.get(Config.AUTH0_API_BASE_URL+
                                "/.well-known/jwks.json")
 

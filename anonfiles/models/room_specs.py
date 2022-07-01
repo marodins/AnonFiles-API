@@ -31,23 +31,37 @@ def create_room(cache):
     return room_name, room_pass
 
 
-def add_user(cache, temp_id, main_id):
+def add_user(cache, temp_id, main_id, uname):
     # associate current session with auth id
     cache.set(temp_id, main_id)
     # create completely new user id associated with empty list instance
     if not cache.get(main_id):
-        cache.set(main_id, list())
+        cache.set(main_id, {'rooms': list(), 'name': uname})
 
 
 def get_rooms(cache, rid, default_rooms=None):
-    user_cached = cache.get(str(rid))
-    user = str(rid) if user_cached is None else user_cached
+    user = get_user(cache, rid)
     # same id as request id not a registered user
-    print(rid, user, type(rid), type(user))
     if not is_logged(user, rid):
         return default_rooms
     else:
-        return cache.get(user)
+        return cache.get(user)['rooms']
+
+
+def get_user(cache, req_id):
+    user = cache.get(req_id)
+    print('user', user, cache.get(user))
+    return user if user else req_id
+
+
+def get_user_name(cache, rid=None, uid=None):
+    """ requires either uid or rid argument """
+    if rid:
+        uid = get_user(cache, rid)
+    # anonymous user, no name stored
+    if not is_logged(uid, rid):
+        return rid
+    return cache.get(uid)['name']
 
 
 def is_logged(uid, rid):
@@ -61,13 +75,13 @@ def add_user_room(cache, room: str, user: str, admin=False, logged_in=False):
 
     if logged_in:
         cur_rooms = cache.get(user)
-        cur_rooms.append(room)
+        cur_rooms['rooms'].append(room)
         cache.set(user, cur_rooms)
 
     if admin:
         cur["admin"] = user
 
     users = cur["users"]
-    users.append(user)
+    users.append(get_user_name(cache, user=user))
     cache.set(room, cur)
 

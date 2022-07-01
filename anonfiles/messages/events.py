@@ -1,7 +1,7 @@
-from flask import session, request
+from flask import session, request, g
 from flask_socketio import join_room, leave_room, rooms, emit
 from anonfiles import socketio as io
-from anonfiles.models.room_specs import create_room
+from anonfiles.models.room_specs import create_room, get_user, get_user_name
 from anonfiles import cache
 from anonfiles.errors.handle_all import Halt
 from datetime import datetime
@@ -11,8 +11,8 @@ from datetime import datetime
 def send_message(data):
     room = data["room"]
     message = data["message"]
-    user = request.sid
-    time = datetime.now().strftime('%m/%d/%Y - %H:%M:%S')
+    user = get_user_name(cache, rid=request.sid)
+    time = datetime.now().strftime('%m/%d/%Y, %H:%M:%S')
     cur = cache.get(room)
     print(f'message received: {message}, room: {cur}')
     if cur:
@@ -38,7 +38,7 @@ def send_message(data):
 def get_messages(data):
     room = data["room"]
     cur = cache.get(room)
-    user = cache.get(str(request.sid))
+    user = get_user(cache, request.sid)
     print('getting messages in messages endpoint')
     if not cur:
         raise Halt(1003, "room does not exist")
