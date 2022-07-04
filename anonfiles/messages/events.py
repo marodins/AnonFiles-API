@@ -20,7 +20,8 @@ def send_message(data):
         new_message = {
                 "message": message,
                 "user": user,
-                "time": time
+                "time": time,
+                "user_id": get_user(cache, request.sid)
             }
         messages.append(
             new_message

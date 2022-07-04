@@ -31,7 +31,7 @@ def create_room(cache):
     return room_name, room_pass
 
 
-def add_user(cache, temp_id, main_id, uname):
+def add_user(cache, temp_id, main_id, uname=None):
     # associate current session with auth id
     cache.set(temp_id, main_id)
     # create completely new user id associated with empty list instance
@@ -48,18 +48,21 @@ def get_rooms(cache, rid, default_rooms=None):
         return cache.get(user)['rooms']
 
 
+def get_room_users(cache, room_name):
+    room = cache.get(room_name)
+    return room if not room else room["users"]
+
+
 def get_user(cache, req_id):
     user = cache.get(req_id)
-    print('user', user, cache.get(user))
     return user if user else req_id
 
 
-def get_user_name(cache, rid=None, uid=None):
-    """ requires either uid or rid argument """
-    if rid:
-        uid = get_user(cache, rid)
+def get_user_name(cache, rid):
+    """ returns user's name if user is logged in otherwise rid """
+    uid = get_user(cache, str(rid))
     # anonymous user, no name stored
-    if not is_logged(uid, rid):
+    if not is_logged(uid, str(rid)):
         return rid
     return cache.get(uid)['name']
 
@@ -68,20 +71,31 @@ def is_logged(uid, rid):
     return uid != rid
 
 
-def add_user_room(cache, room: str, user: str, admin=False, logged_in=False):
+def add_user_room(cache, room: str, rid: str, admin=False):
     cur = cache.get(room)
+    user = get_user(cache, rid)
+    user_name = get_user_name(cache, rid)
     if not cur:
         raise Halt(1003, 'room does not exist')
 
-    if logged_in:
-        cur_rooms = cache.get(user)
-        cur_rooms['rooms'].append(room)
-        cache.set(user, cur_rooms)
+    if is_logged(rid, user):
+        cur_user = cache.get(user)
+        cur_user['rooms'].append(room)
+        cache.set(user, cur_user)
 
     if admin:
         cur["admin"] = user
 
     users = cur["users"]
-    users.append(get_user_name(cache, user=user))
+    users.append(user_name)
     cache.set(room, cur)
+
+
+def remove_user_room(cache, rid, room_name):
+    room = cache.get(room_name)
+    if room:
+        users = room["users"]
+        users.remove(rid)
+        cache.set(room_name, room)
+
 
