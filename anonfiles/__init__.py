@@ -6,7 +6,7 @@ from authlib.integrations.flask_client import OAuth
 from config.config import Config
 sess = Session()
 cache = Cache()
-socketio = SocketIO()
+socketio = SocketIO(max_http_buffer_size=10**8)
 auth = OAuth()
 auth.register(
     'auth0',

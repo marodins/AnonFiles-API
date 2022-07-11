@@ -48,6 +48,15 @@ def get_rooms(cache, rid, default_rooms=None):
         return cache.get(user)['rooms']
 
 
+def is_user_room(cache, room_name, rid):
+    room = cache.get(room_name)
+    user = get_user(cache, rid)
+    if room:
+        for person in room['users']:
+            if person.get(user):
+                return room
+
+
 def get_room_users(cache, room_name):
     room = cache.get(room_name)
     return room if not room else room["users"]
@@ -87,7 +96,7 @@ def add_user_room(cache, room: str, rid: str, admin=False):
         cur["admin"] = user
 
     users = cur["users"]
-    users.append(user_name)
+    users.append({user: user_name})
     cache.set(room, cur)
 
 
@@ -95,7 +104,10 @@ def remove_user_room(cache, rid, room_name):
     room = cache.get(room_name)
     if room:
         users = room["users"]
-        users.remove(rid)
+        for index, ob in enumerate(users):
+            if ob.get(rid):
+                users.pop(index)
+                break
         cache.set(room_name, room)
 
 

@@ -1,7 +1,8 @@
 from flask import session, request, g
 from flask_socketio import join_room, leave_room, rooms, emit
 from anonfiles import socketio as io
-from anonfiles.models.room_specs import create_room, get_user, get_user_name
+from anonfiles.models.room_specs import create_room, get_user, \
+    get_user_name, is_user_room
 from anonfiles import cache
 from anonfiles.errors.handle_all import Halt
 from datetime import datetime
@@ -35,18 +36,26 @@ def send_message(data):
         raise Halt(1003, "room was not found")
 
 
+@io.on('send_file', namespace='/user')
+def send_file(data):
+    print('\n\n\nin send file', type(data["files"]))
+    files = data["files"]
+    room = data["room"]
+    # ensure user has access to this room
+    if is_user_room(cache, room, request.sid):
+        print('sending files to client')
+        emit('received_files', {"files": files}, to=room)
+
+
 @io.on('get_all_messages', namespace='/user')
 def get_messages(data):
     room = data["room"]
     cur = cache.get(room)
-    user = get_user(cache, request.sid)
     print('getting messages in messages endpoint')
     if not cur:
         raise Halt(1003, "room does not exist")
     else:
-        users = cur["users"]
-        print(users)
-        if str(request.sid) or user in users:
+        if is_user_room(cache, room, request.sid):
             return emit('all_messages', cur["messages"], to=request.sid)
 
     raise Halt(1003, "unknown error in handler")
