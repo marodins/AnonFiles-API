@@ -1,5 +1,5 @@
 import random
-import time
+from datetime import datetime
 from string import digits, ascii_letters
 from hashlib import md5
 from random import getrandbits
@@ -110,4 +110,26 @@ def remove_user_room(cache, rid, room_name):
                 break
         cache.set(room_name, room)
 
+
+def add_message(cache, rid, room, message):
+    user = get_user_name(cache, rid=rid)
+    time = datetime.now().strftime('%m/%d/%Y, %H:%M:%S')
+    cur = cache.get(room)
+    print(f'message received: {message}, room: {cur}')
+    if cur:
+        messages = cur["messages"]
+        new_message = {
+            "message": message,
+            "user": user,
+            "time": time,
+            "user_id": get_user(cache, rid)
+        }
+        messages.append(
+            new_message
+        )
+
+        # update room data
+        cache.set(room, cur)
+        print('emitting new message')
+        return new_message
 

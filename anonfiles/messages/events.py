@@ -2,7 +2,7 @@ from flask import session, request, g
 from flask_socketio import join_room, leave_room, rooms, emit
 from anonfiles import socketio as io
 from anonfiles.models.room_specs import create_room, get_user, \
-    get_user_name, is_user_room
+    get_user_name, is_user_room, add_message
 from anonfiles import cache
 from anonfiles.errors.handle_all import Halt
 from datetime import datetime
@@ -12,25 +12,8 @@ from datetime import datetime
 def send_message(data):
     room = data["room"]
     message = data["message"]
-    user = get_user_name(cache, rid=request.sid)
-    time = datetime.now().strftime('%m/%d/%Y, %H:%M:%S')
-    cur = cache.get(room)
-    print(f'message received: {message}, room: {cur}')
-    if cur:
-        messages = cur["messages"]
-        new_message = {
-                "message": message,
-                "user": user,
-                "time": time,
-                "user_id": get_user(cache, request.sid)
-            }
-        messages.append(
-            new_message
-        )
-
-        # update room data
-        cache.set(room, cur)
-        print('emitting new message')
+    new_message = add_message(cache, request.sid, room, message)
+    if new_message:
         emit('new_message', {"data": new_message}, to=room, include_self=False)
     else:
         raise Halt(1003, "room was not found")
@@ -41,10 +24,18 @@ def send_file(data):
     print('\n\n\nin send file', type(data["files"]))
     files = data["files"]
     room = data["room"]
+    file_names = ''.join([f"{index+1}.{file['name']}\n" for index, file in enumerate(files)])
     # ensure user has access to this room
     if is_user_room(cache, room, request.sid):
         print('sending files to client')
-        emit('received_files', {"files": files}, to=room)
+        add_message(
+            cache,
+            request.sid,
+            room,
+            file_names
+        )
+        emit('received_files', {"files": files}, to=room, include_self=True)
+
 
 
 @io.on('get_all_messages', namespace='/user')
