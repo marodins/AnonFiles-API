@@ -24,7 +24,7 @@ def create_room(cache):
         "pass": room_pass,
         "messages": [],
         "users": [],
-        "admin": ''
+        "admin": []
     }
     cache.set(room_name, room)
 
@@ -93,7 +93,7 @@ def add_user_room(cache, room: str, rid: str, admin=False):
         cache.set(user, cur_user)
 
     if admin:
-        cur["admin"] = user
+        cur["admin"] = [user, user_name]
 
     users = cur["users"]
     users.append({user: user_name})

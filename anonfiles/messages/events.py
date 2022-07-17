@@ -34,8 +34,7 @@ def send_file(data):
             room,
             file_names
         )
-        emit('received_files', {"files": files}, to=room, include_self=True)
-
+        emit('received_files', {"files": files}, to=room, include_self=False)
 
 
 @io.on('get_all_messages', namespace='/user')
@@ -47,6 +46,6 @@ def get_messages(data):
         raise Halt(1003, "room does not exist")
     else:
         if is_user_room(cache, room, request.sid):
-            return emit('all_messages', cur["messages"], to=request.sid)
+            return cur["messages"]
 
     raise Halt(1003, "unknown error in handler")

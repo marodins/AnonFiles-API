@@ -9,43 +9,32 @@ from anonfiles.utils.validations import validator
 
 @io.on('try_room', namespace='/user')
 def try_room(message):
-    print('in try_room')
     room_name = message.get('name')
     room_pass = message.get('pass')
-    print('received serverside name and pass', room_name, room_pass)
     is_room = cache.get(room_name)
-    print(is_room)
     user = get_user(cache, request.sid)
     user_name = get_user_name(cache, request.sid)
-    print('user is', user)
     password = None if (room_name is None) or (is_room is None) else is_room[
         "pass"]
-    print(room_name, password, is_room)
     if is_user_room(cache, room_name, request.sid):
         raise Halt(1011, "user is already in this room")
     if password and room_pass == password:
         join_room(room_name)
         add_user_room(cache, room_name, request.sid)
-        print(f'\nusers {request.sid}'
-              f'\nrooms:{rooms()}')
         emit("joined", {"user": {user: user_name}, "room": room_name},
              to=room_name, include_self=True)
     else:
-        print('emitting message')
         raise Halt(1011, "incorrect password")
 
 
 @io.on('connect', namespace='/user')
 @validator
 def connection(client):
-    print('client', client)
-    print(request.sid)
     user_id = request.sid
     user_name = user_id
     if hasattr(g, 'payload'):
         user_id = g.payload.get('sub')
         user_name = g.payload.get('name')
-        print('in payload')
         add_user(cache, request.sid, user_id, user_name)
         for room in get_rooms(cache, request.sid):
             print(f'joined {room}')
