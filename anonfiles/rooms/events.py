@@ -37,7 +37,6 @@ def connection(client):
         user_name = g.payload.get('name')
         add_user(cache, request.sid, user_id, user_name)
         for room in get_rooms(cache, request.sid):
-            print(f'joined {room}')
             join_room(room)
     emit('connected_data', {"user_id": user_id, "user_name": user_name})
 
@@ -60,7 +59,6 @@ def disconnection():
 @io.on('make_room', namespace='/user')
 def make_room():
     room, password = create_room(cache)
-    print(room, password)
     join_room(room)
     add_user_room(cache, room, request.sid, admin=True)
     emit('created', {'room': room, 'password': password})
@@ -76,7 +74,6 @@ def get_all_users(data):
     room_name = data["room"]
     users = get_room_users(cache, room_name)
     if users:
-        print('users', users)
         emit('all_users', {"users": users})
     else:
         raise Halt(1003, "error processing data")

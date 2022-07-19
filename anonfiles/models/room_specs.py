@@ -115,7 +115,6 @@ def add_message(cache, rid, room, message):
     user = get_user_name(cache, rid=rid)
     time = datetime.now().strftime('%m/%d/%Y, %H:%M:%S')
     cur = cache.get(room)
-    print(f'message received: {message}, room: {cur}')
     if cur:
         messages = cur["messages"]
         new_message = {
@@ -130,6 +129,5 @@ def add_message(cache, rid, room, message):
 
         # update room data
         cache.set(room, cur)
-        print('emitting new message')
         return new_message
 

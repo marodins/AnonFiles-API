@@ -21,13 +21,11 @@ def send_message(data):
 
 @io.on('send_file', namespace='/user')
 def send_file(data):
-    print('\n\n\nin send file', type(data["files"]))
     files = data["files"]
     room = data["room"]
     file_names = ''.join([f"{index+1}.{file['name']}\n" for index, file in enumerate(files)])
     # ensure user has access to this room
     if is_user_room(cache, room, request.sid):
-        print('sending files to client')
         add_message(
             cache,
             request.sid,
@@ -41,7 +39,6 @@ def send_file(data):
 def get_messages(data):
     room = data["room"]
     cur = cache.get(room)
-    print('getting messages in messages endpoint')
     if not cur:
         raise Halt(1003, "room does not exist")
     else:

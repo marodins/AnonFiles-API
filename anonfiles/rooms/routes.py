@@ -13,7 +13,6 @@ bp = Blueprint('main', __name__, url_prefix='/',
 
 @bp.route('', methods=["GET"])
 def home():
-    print('in auth')
     if request.args.get('code', None):
         return rooms()
     return render_template('index.html')
@@ -25,7 +24,6 @@ def rooms():
         token.pop('access_token', None)
     except MismatchingStateError:
         return render_template('index.html')
-    print(token)
     res = make_response(render_template('index.html'))
     res.set_cookie('token_id', token.get('id_token', None))
     return res
@@ -33,7 +31,6 @@ def rooms():
 
 @bp.route('authorize', methods=["GET"])
 def try_authorize():
-    print('in auth')
     auth0 = auth.create_client('auth0')
     return auth0.authorize_redirect(
         redirect_uri=url_for('main.home', _external=True)
