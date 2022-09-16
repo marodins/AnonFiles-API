@@ -7,8 +7,8 @@ from anonfiles.errors.handle_all import Halt
 from anonfiles import cache, socketio as io, auth
 
 bp = Blueprint('main', __name__, url_prefix='/',
-               static_folder='../../../AnonFiles-FE/anon-files/build/static/',
-               template_folder='../../../AnonFiles-FE/anon-files/build/')
+               static_folder='../../static/build/static',
+               template_folder='../../static/build')
 
 
 @bp.route('', methods=["GET"])
@@ -35,7 +35,3 @@ def try_authorize():
     return auth0.authorize_redirect(
         redirect_uri=url_for('main.home', _external=True)
     )
-
-
-
-

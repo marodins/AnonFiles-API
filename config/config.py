@@ -1,22 +1,34 @@
-from os import environ
+
+from os import environ, path
+from dotenv import load_dotenv
 import redis
+
+file_path = path.abspath(path.dirname(__file__))
+full_path = path.join(file_path, '../.env')
+load_dotenv(full_path)
 
 
 class Config(object):
     FLASK_APP = environ.get('FLASK_APP')
     SECRET_KEY = environ.get('FLASK_SECRET')
 
-    # session
-    SESSION_TYPE = 'redis'
-    SESSION_PERMANENT = False
-    SESSION_USE_SIGNER = True
-
     # cache
     CACHE_TYPE = 'RedisCache'
     CACHE_REDIS_HOST = environ.get('CACHE_REDIS_HOST')
     CACHE_REDIS_PORT = environ.get('CACHE_REDIS_PORT')
     CACHE_REDIS_URL = environ.get('CACHE_REDIS_URL')
+    CACHE_REDIS_PASSWORD = environ.get('CACHE_REDIS_PASSWORD')
     CACHE_DEFAULT_TIMEOUT = 500000
+
+    # session
+    SESSION_TYPE = 'redis'
+    SESSION_PERMANENT = False
+    SESSION_USE_SIGNER = True
+    SESSION_REDIS = redis.Redis(
+        host=CACHE_REDIS_HOST,
+        port=CACHE_REDIS_PORT,
+        password=CACHE_REDIS_PASSWORD,
+    )
 
     # auth
     AUTH0_CLIENT_ID = environ.get('AUTH0_CLIENT_ID')
@@ -32,11 +44,9 @@ class Config(object):
 
 class Production(Config):
     DEBUG = False
-    FLASK_ENV = 'production'
 
 
 class Development(Config):
     DEBUG = True
-    FLASK_ENV = 'development'
-    SESSION_REDIS = redis.from_url(environ.get('SESSION_REDIS'))
+
 

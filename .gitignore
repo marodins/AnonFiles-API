@@ -1,5 +1,11 @@
 *.env
+*.dev
 *.idea
 *.DS_Store
 __pycache__/
 env/
+*.yaml
+Dockerfile
+*.dockerignore
+
+

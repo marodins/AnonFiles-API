@@ -27,7 +27,6 @@ def get_rsa(webkeys, unver):
 def validator(func):
     @wraps(func)
     def validate(*args, **kwargs):
-        print(args)
         try:
             token = args[0].get('token')
             if not token:

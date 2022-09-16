@@ -1,5 +1,0 @@
-set -o allexport
-source .env
-set +o allexport
-source env/bin/activate
-python3 main.py
