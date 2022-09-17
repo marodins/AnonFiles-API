@@ -44,6 +44,7 @@ class Config(object):
 
 class Production(Config):
     DEBUG = False
+    PREFERRED_URL_SCHEME = 'https'
 
 
 class Development(Config):
