@@ -33,5 +33,5 @@ def rooms():
 def try_authorize():
     auth0 = auth.create_client('auth0')
     return auth0.authorize_redirect(
-        redirect_uri=url_for('main.home', _external=True)
+        redirect_uri=url_for('main.home', _external=True, _scheme='https')
     )
