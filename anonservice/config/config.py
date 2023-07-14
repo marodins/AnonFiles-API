@@ -16,7 +16,7 @@ class Config(object):
     CACHE_TYPE = 'RedisCache'
     CACHE_REDIS_HOST = environ.get('CACHE_REDIS_HOST') or 'localhost'
     CACHE_REDIS_PORT = environ.get('CACHE_REDIS_PORT') or '6379'
-    CACHE_REDIS_URL = environ.get('CACHE_REDIS_URL')
+    #CACHE_REDIS_URL = environ.get('CACHE_REDIS_URL')
     CACHE_REDIS_PASSWORD = environ.get('CACHE_REDIS_PASSWORD')
     CACHE_DEFAULT_TIMEOUT = 500000
 

@@ -8,6 +8,6 @@ app.use(cookieParser());
 
 app.use('/api/users/v1', userRouter);
 
-app.listen(port, 'localhost',()=>{
+app.listen(port, '0.0.0.0',()=>{
     console.log(`now listening ${port}`);
 });

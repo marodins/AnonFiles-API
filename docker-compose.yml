@@ -1,0 +1,66 @@
+version: "4.16.0"
+services:
+  authservice:
+    build: ./authservice/profile
+    ports:
+      - 8010:8010
+    environment:
+      KC_CLIENT_ID: AnonChat
+      KC_CLIENT_SECRET: LymMBjxGYWjlN394dpZ54UgA4YDbebtQ
+    depends_on:
+      - keycloak-anon-auth
+    networks:
+      - anon-app
+
+  anon_chat_service:
+    build: ./anonservice
+    ports:
+      - 8011:8011
+    environment:
+      FLASK_SECRET: 57508880beebae48866c9a241a746d9a7b9ffc3b7d6da6075b0039d984b43f51
+      FLASK_DEBUG: False
+      CACHE_REDIS_HOST: anon_redis
+      CACHE_REDIS_PORT: 6379
+      PYTHONUNBUFFERED: 1
+      AUTH_ROOT_ENDPOINT: http://keycloak-anon-auth:8080
+      AUTH_CERTS_PATH: /realms/AnonChat/protocol/openid-connect/certs
+    depends_on:
+      - authservice
+      - anon_redis
+    networks:
+      - anon-app
+  anon_redis:
+    image: "redis:bullseye"
+    ports:
+      - 6379:6379
+    networks:
+      - anon-app
+  keycloak-anon-auth:
+    image: quay.io/keycloak/keycloak:21.1.1
+    command:
+      - start-dev
+      - --import-realm
+    volumes:
+      - type: volume
+        source: kc-import
+        target: /opt/keycloak/data/import
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: localhost
+    container_name: keycloak-anon-auth
+    ports:
+      - 8080:8080
+    networks:
+      - anon-app
+networks:
+  anon-app:
+    driver: bridge
+volumes:
+  kc-import:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/keycloak/import
+

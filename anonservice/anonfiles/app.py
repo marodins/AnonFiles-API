@@ -17,7 +17,7 @@ def make_app(env_type=os.getenv('FLASK_ENV', None)):
     reg_blueprints(app)
     sess.init_app(app)
     cache.init_app(app)
-    socketio.init_app(app, cors_allowed_origins=[])
+    socketio.init_app(app, cors_allowed_origins=[], engineio_logger=True)
     return app
 
 

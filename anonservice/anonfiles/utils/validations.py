@@ -29,7 +29,6 @@ def validator(func):
     def validate(*args, **kwargs):
         try:
             token = args[0].get('token')
-            
             if not token:
                 g.payload = None
                 return
@@ -42,7 +41,6 @@ def validator(func):
                 token,
                 rsa_key,
                 algorithms=["RS256"],
-                issuer=Config.AUTH_REALMS_PATH,
                 audience=Config.AUTH_AUDIENCE,
                 options={
                     'verify_at_hash':False,
@@ -52,7 +50,7 @@ def validator(func):
             # will only be set if no exceptions raised prior
             # indicating successful payload retrieval
             g.payload = payload
-        except jwt.ExpiredSignatureError:
+        except jwt.ExpiredSignatureError as e:
             g.error = Halt(1011, "expired token")
         except jwt.JWTClaimsError as e:
             g.error = Halt(1011, str(e))
@@ -60,8 +58,8 @@ def validator(func):
             g.error = Halt(1011, "no authorization header provided")
         except ValueError:
             g.error = Halt(1011, "token or 'bearer' missing ")
-        except Halt as res_error:
-            g.error = res_error
+        except Halt as e:
+            g.error = e
         except Exception as e:
             g.error = Halt(1011, str(e))
         return func(*args, **kwargs)
